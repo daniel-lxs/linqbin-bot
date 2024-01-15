@@ -20,7 +20,7 @@ client.on('interactionCreate', async (interaction) => {
   const command = commands[commandName as keyof typeof commands];
   if (command) {
     console.log(`Running command: ${commandName}`);
-    command.execute(interaction);
+    command.execute(interaction, command.data);
   }
 });
 

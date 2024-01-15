@@ -1,6 +1,6 @@
 import type { CommandInteraction, SlashCommandBuilder } from 'discord.js';
 
-type SlashCommand =
+export type SlashCommand =
   | SlashCommandBuilder
   | (Partial<SlashCommandBuilder> & {
       name: string;
@@ -9,5 +9,8 @@ type SlashCommand =
 
 export type Command = {
   data: SlashCommand;
-  execute: (interaction: CommandInteraction) => Promise<void>;
+  execute: (
+    interaction: CommandInteraction,
+    commandData: SlashCommand
+  ) => Promise<void>;
 };

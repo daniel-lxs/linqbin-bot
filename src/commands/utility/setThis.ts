@@ -1,5 +1,6 @@
 import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
 import {
+  isMemberGuildOwner,
   addLogChannelToGuild,
   addOwnerRoleIdToGuild,
   createGuild,
@@ -39,16 +40,39 @@ const setThis: Command = {
         .setRequired(false)
     ),
   execute: async (interaction: CommandInteraction) => {
+    const guild = interaction.guild;
+
+    if (!guild || !interaction.inCachedGuild()) {
+      await interaction.reply('This command can only be used in a guild!');
+      return;
+    }
+
+    const memberRoles = interaction.member?.roles.cache.map((role) => role.id);
+
+    if (!memberRoles) {
+      await interaction.reply(
+        'You do not have permission to use this command!'
+      );
+      return;
+    }
+
+    const isGuildOwner = isMemberGuildOwner(
+      interaction.guildId as string,
+      memberRoles
+    );
+
+    const highestRole = guild.roles.highest;
+
+    if (!isGuildOwner || !highestRole) {
+      await interaction.reply(
+        'You do not have permission to use this command!'
+      );
+      return;
+    }
+
     const option = interaction.options.get('option')?.value as string;
     switch (option) {
       case 'guild':
-        const guild = interaction.guild;
-
-        if (!guild) {
-          await interaction.reply('This command can only be used in a guild!');
-          return;
-        }
-
         createGuild({
           id: guild.id,
           name: guild.name,
@@ -58,18 +82,17 @@ const setThis: Command = {
         await interaction.reply('Guild set!');
         break;
       case 'logs-channel':
-        const guildId = interaction.guildId;
         const value = interaction.options.get('value')?.value as string;
         const channelId = value || interaction.channelId;
 
-        if (!channelId || !guildId) {
+        if (!channelId) {
           await interaction.reply(
             'This command can only be used in a channel!'
           );
           return;
         }
 
-        const result = await addLogChannelToGuild(guildId, channelId);
+        const result = await addLogChannelToGuild(guild.id, channelId);
 
         if (!result) {
           await interaction.reply('Failed to set logs channel!');
@@ -80,19 +103,13 @@ const setThis: Command = {
         break;
       case 'owner-role':
         const roleId = interaction.options.get('value')?.value as string;
-        const guildId2 = interaction.guildId;
 
         if (!roleId) {
           await interaction.reply('This command requires a role ID!');
           return;
         }
 
-        if (!guildId2) {
-          await interaction.reply('This command can only be used in a guild!');
-          return;
-        }
-
-        const result2 = await addOwnerRoleIdToGuild(guildId2, roleId);
+        const result2 = await addOwnerRoleIdToGuild(guild.id, roleId);
 
         if (!result2) {
           await interaction.reply('Failed to set owner role!');

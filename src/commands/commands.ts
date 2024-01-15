@@ -4,12 +4,14 @@ import ping from './utility/ping';
 import setThis from './utility/setThis';
 import shorten from './link/shorten';
 import sendShorten from './link/sendShorten';
+import toggleCommand from './utility/toggleCommand';
 
 export const commands: Record<string, Command> = {
   ping,
-  //[setThis.data.name]: setThis,
+  [setThis.data.name]: setThis,
   [shorten.data.name]: shorten,
   [sendShorten.data.name]: sendShorten,
+  [toggleCommand.data.name]: toggleCommand,
 };
 
 export async function deployCommands() {

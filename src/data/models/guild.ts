@@ -7,6 +7,7 @@ export const guildSchema = sqliteTable('guilds', {
   logChannelId: text('logChannelId'),
   ownerRoleId: text('ownerRoleId'),
   name: text('name').notNull(),
+  disabledCommands: text('disabledCommands'),
 });
 
 export type Guild = {
@@ -16,4 +17,5 @@ export type Guild = {
   logChannelId?: string;
   ownerRoleId?: string;
   name: string;
+  disabledCommands?: string[];
 };
