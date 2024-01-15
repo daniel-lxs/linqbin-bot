@@ -1,8 +1,8 @@
-import { SlashCommandBuilder } from 'discord.js';
-import type { Command } from '../../types/Command';
-import { validateUrl } from '../../util';
-import { getPageInfo } from '../../api/getPageInfo';
-import { createNewEntry } from '../../api/createEntry';
+import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { createNewEntry, getNewPasskey, getPageInfo } from '../../api';
+import { isCommandDisabled } from '../../data/repositories/guildRespository';
+import type { Command, SlashCommand } from '../../types/Command';
+import { encryptContent, validateUrl } from '../../util';
 
 const shorten: Command = {
   data: new SlashCommandBuilder()
@@ -10,7 +10,7 @@ const shorten: Command = {
     .setDescription('Shortens a url')
     .addStringOption((option) =>
       option
-        .setName('url')
+        .setName('url') //TODO: allow text or url
         .setDescription('The url to shorten')
         .setRequired(true)
     )
@@ -30,7 +30,21 @@ const shorten: Command = {
         .setMaxValue(100)
         .setRequired(false)
     ),
-  execute: async (interaction) => {
+  execute: async (
+    interaction: CommandInteraction,
+    commandData: SlashCommand
+  ) => {
+    const guild = interaction.guild;
+    if (guild) {
+      if (isCommandDisabled(interaction.guildId as string, commandData.name)) {
+        await interaction.reply({
+          content: 'This command is disabled',
+          ephemeral: true,
+        });
+        return;
+      }
+    }
+
     const apiUrl = process.env.API_URL;
     const url = interaction.options.get('url')?.value as string;
     const ttl = interaction.options.get('ttl')?.value as number;
@@ -47,9 +61,21 @@ const shorten: Command = {
     if (isValidUrl) {
       const title = await getPageInfo(url);
 
+      const passkey = await getNewPasskey();
+
+      if (!passkey) {
+        await interaction.reply({
+          content: 'Failed to create entry',
+          ephemeral: true,
+        });
+        return;
+      }
+
+      const encryptedContent = encryptContent(url, passkey);
+
       const entry = await createNewEntry({
         title: title?.title || undefined,
-        content: url,
+        content: encryptedContent,
         ttl: ttl || 1,
         visitCountThreshold: visitCountThreshold || 0,
       });
@@ -63,7 +89,7 @@ const shorten: Command = {
       }
 
       await interaction.reply({
-        content: `\`${apiUrl}${entry.slug}\``, // TODO
+        content: `\`${apiUrl}/${entry.slug}+${passkey}\``, //TODO: add title and url without passkey
         ephemeral: true,
       });
     }

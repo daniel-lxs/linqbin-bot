@@ -1,8 +1,10 @@
 import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
-import type { Command } from '../../types/Command';
-import { validateUrl } from '../../util';
+import type { Command, SlashCommand } from '../../types/Command';
+import { encryptContent, validateUrl } from '../../util';
 import { getPageInfo } from '../../api/getPageInfo';
 import { createNewEntry } from '../../api/createEntry';
+import { isCommandDisabled } from '../../data/repositories/guildRespository';
+import { getNewPasskey } from '../../api';
 
 const sendShorten: Command = {
   data: new SlashCommandBuilder()
@@ -10,7 +12,7 @@ const sendShorten: Command = {
     .setDescription('Sends a shortened url')
     .addStringOption((option) =>
       option
-        .setName('url')
+        .setName('url') //TODO: allow text or url
         .setDescription('The url to shorten')
         .setRequired(true)
     )
@@ -33,7 +35,23 @@ const sendShorten: Command = {
         .setMaxValue(100)
         .setRequired(false)
     ),
-  execute: async (interaction: CommandInteraction) => {
+  execute: async function (
+    interaction: CommandInteraction,
+    commandData: SlashCommand
+  ) {
+    if (!interaction.guild) {
+      await interaction.reply('This command can only be used in a guild!');
+      return;
+    }
+
+    if (isCommandDisabled(interaction.guildId as string, commandData.name)) {
+      await interaction.reply({
+        content: 'This command is disabled',
+        ephemeral: true,
+      });
+      return;
+    }
+
     const apiUrl = process.env.API_URL;
     const target = interaction.options.getUser('target');
     const url = interaction.options.get('url')?.value as string;
@@ -56,9 +74,21 @@ const sendShorten: Command = {
     if (isValidUrl) {
       const title = await getPageInfo(url);
 
+      const passkey = await getNewPasskey();
+
+      if (!passkey) {
+        await interaction.reply({
+          content: 'Failed to create entry',
+          ephemeral: true,
+        });
+        return;
+      }
+
+      const encryptedContent = encryptContent(url, passkey);
+
       const entry = await createNewEntry({
         title: title?.title || undefined,
-        content: url,
+        content: encryptedContent,
         ttl: ttl || 1,
         visitCountThreshold: visitCountThreshold || 0,
       });
@@ -72,7 +102,7 @@ const sendShorten: Command = {
       }
 
       target.send(
-        `Hi there, I'm Linqbin, ${interaction.user.username} has sent you a temporary link: \`${apiUrl}/l/${entry.slug}\`. If you didn't request this, please ignore this message.`
+        `Hi there, I'm Linqbin, ${interaction.user.username} has sent you a temporary link: \`${apiUrl}/${entry.slug}+${passkey}\`. If you didn't request this, please ignore this message.`
       );
 
       await interaction.reply({
