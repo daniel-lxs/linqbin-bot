@@ -7,6 +7,7 @@ declare global {
       TOKEN: string;
       PORT: number;
       API_URL: string;
+      FRONTEND_URL: string;
     }
   }
 }
