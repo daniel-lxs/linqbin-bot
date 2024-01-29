@@ -1,5 +1,6 @@
 import { Client, GatewayIntentBits } from 'discord.js';
-import { commands, deployCommands } from './commands/commands';
+import { deployCommands } from './commands/commands';
+import interactionCreateListener from './events/interactionCreate';
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -10,19 +11,9 @@ client.on('ready', async () => {
   console.log(`Logged in as ${client.user?.tag}!`);
 });
 
-client.on('interactionCreate', async (interaction) => {
-  console.log(`Received interaction: ${interaction.id}`);
-  if (!interaction.isCommand()) {
-    return;
-  }
-
-  const { commandName } = interaction;
-  const command = commands[commandName as keyof typeof commands];
-  if (command) {
-    console.log(`Running command: ${commandName}`);
-    command.execute(interaction, command.data);
-  }
-});
+client.on('interactionCreate', (...args) =>
+  interactionCreateListener.execute(...args)
+);
 
 client.login(process.env.TOKEN);
 
