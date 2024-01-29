@@ -10,7 +10,7 @@ export async function getPageInfo(url: string): Promise<PageInfo | null> {
   }
 
   try {
-    const response = await fetch(`http://localhost:4000/page-info`, {
+    const response = await fetch(`${process.env.API_URL}/page-info`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
