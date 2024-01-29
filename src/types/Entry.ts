@@ -4,8 +4,6 @@ export type NewEntryDto = Pick<
 > & { title?: string };
 
 export type Entry = {
-  id: number;
-  shortSlug: string;
   slug: string;
   title?: string;
   content: string;
@@ -14,5 +12,4 @@ export type Entry = {
   remainingVisits: number;
   createdOn: string;
   expiresOn: string;
-  deletedOn: string | null;
 };
