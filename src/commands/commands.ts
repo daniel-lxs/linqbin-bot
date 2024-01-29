@@ -1,17 +1,21 @@
 import { REST, Routes } from 'discord.js';
 import type { Command } from '../types/Command';
 import ping from './utility/ping';
-import setThis from './utility/setThis';
+import setGuild from './config/setGuild';
 import shorten from './link/shorten';
 import sendShorten from './link/sendShorten';
-import toggleCommand from './utility/toggleCommand';
+import toggleCommand from './config/toggleCommand';
+import setOwnerRole from './config/setOwnerRole';
+import { allowLinks } from './link/allowLinks';
 
 export const commands: Record<string, Command> = {
   ping,
-  [setThis.data.name]: setThis,
+  [setGuild.data.name]: setGuild,
   [shorten.data.name]: shorten,
   [sendShorten.data.name]: sendShorten,
   [toggleCommand.data.name]: toggleCommand,
+  [setOwnerRole.data.name]: setOwnerRole,
+  [allowLinks.data.name]: allowLinks,
 };
 
 export async function deployCommands() {
