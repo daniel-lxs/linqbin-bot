@@ -8,7 +8,7 @@ export async function createNewEntry({
   visitCountThreshold,
 }: NewEntryDto): Promise<Entry | null> {
   try {
-    const response = await fetch('http://localhost:4000/entry', {
+    const response = await fetch(`${process.env.API_URL}/entry`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -24,19 +24,11 @@ export async function createNewEntry({
 
     if (
       result &&
-      assertEntity<Entry>(result, [
-        'id',
-        'slug',
-        'title',
-        'remainingVisits',
-        'ttl',
-        'content',
-        'expiresOn',
-      ])
+      assertEntity<Entry>(result, ['slug', 'ttl', 'content', 'expiresOn'])
     ) {
       return result as Entry;
     }
-
+    console.error('Error creating entry:', result);
     return null;
   } catch (error) {
     console.error('Error creating entry:', error);
