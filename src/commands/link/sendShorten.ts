@@ -1,15 +1,24 @@
-import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
+import {
+  SlashCommandBuilder,
+  CommandInteraction,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder,
+} from 'discord.js';
 import type { Command, SlashCommand } from '../../types/Command';
 import { encryptContent, validateUrl } from '../../util';
 import { getPageInfo } from '../../api/getPageInfo';
 import { createNewEntry } from '../../api/createEntry';
-import { isCommandDisabled } from '../../data/repositories/guildRespository';
-import { getNewPasskey } from '../../api';
+import {
+  findGuildByGuildId,
+  isCommandDisabled,
+} from '../../data/repositories/guildRespository';
+import { isDndEnabled } from '../../data/repositories/dndEntryRepository';
 
 const sendShorten: Command = {
   data: new SlashCommandBuilder()
     .setName('send-shorten')
-    .setDescription('Sends a shortened url')
+    .setDescription('Sends a shortened url to another member of the server')
     .addStringOption((option) =>
       option
         .setName('url') //TODO: allow text or url
@@ -17,7 +26,10 @@ const sendShorten: Command = {
         .setRequired(true)
     )
     .addUserOption((option) =>
-      option.setName('target').setDescription('The user to send the link to')
+      option
+        .setName('target')
+        .setDescription('The user to send the link to')
+        .setRequired(true)
     )
     .addIntegerOption((option) =>
       option
@@ -34,6 +46,12 @@ const sendShorten: Command = {
         .setMinValue(0)
         .setMaxValue(100)
         .setRequired(false)
+    )
+    .addStringOption((option) =>
+      option
+        .setName('title')
+        .setDescription('The title of the link')
+        .setRequired(false)
     ),
   execute: async function (
     interaction: CommandInteraction,
@@ -44,7 +62,12 @@ const sendShorten: Command = {
       return;
     }
 
-    if (isCommandDisabled(interaction.guildId as string, commandData.name)) {
+    const savedGuild = findGuildByGuildId(interaction.guildId as string);
+
+    if (
+      !savedGuild ||
+      isCommandDisabled(interaction.guildId as string, commandData.name)
+    ) {
       await interaction.reply({
         content: 'This command is disabled',
         ephemeral: true,
@@ -52,10 +75,25 @@ const sendShorten: Command = {
       return;
     }
 
-    const apiUrl = process.env.API_URL;
+    const frontendUrl = process.env.FRONTEND_URL;
     const target = interaction.options.getUser('target');
+
+    if (!target) {
+      await interaction.reply('No target provided!');
+      return;
+    }
+
+    if (isDndEnabled(target?.id)) {
+      await interaction.reply({
+        content: 'This user does not want to receive links',
+        ephemeral: true,
+      });
+      return;
+    }
+
     const url = interaction.options.get('url')?.value as string;
     const ttl = interaction.options.get('ttl')?.value as number;
+    const title = interaction.options.get('title')?.value as string;
     const visitCountThreshold = interaction.options.get('visit-limit')
       ?.value as number;
 
@@ -64,30 +102,13 @@ const sendShorten: Command = {
       return;
     }
 
-    if (!target) {
-      await interaction.reply('No target provided!');
-      return;
-    }
-
     const isValidUrl = validateUrl(url);
 
     if (isValidUrl) {
-      const title = await getPageInfo(url);
-
-      const passkey = await getNewPasskey();
-
-      if (!passkey) {
-        await interaction.reply({
-          content: 'Failed to create entry',
-          ephemeral: true,
-        });
-        return;
-      }
-
-      const encryptedContent = encryptContent(url, passkey);
+      const { encryptedContent, passkey } = encryptContent(url);
 
       const entry = await createNewEntry({
-        title: title?.title || undefined,
+        title: title || undefined,
         content: encryptedContent,
         ttl: ttl || 1,
         visitCountThreshold: visitCountThreshold || 0,
@@ -101,12 +122,33 @@ const sendShorten: Command = {
         return;
       }
 
-      target.send(
-        `Hi there, I'm Linqbin, ${interaction.user.username} has sent you a temporary link: \`${apiUrl}/${entry.slug}+${passkey}\`. If you didn't request this, please ignore this message.`
-      );
+      const dndButton = new ButtonBuilder()
+        .setCustomId('dnd-button')
+        .setLabel("Don't send me links")
+        .setStyle(ButtonStyle.Danger);
+      const row = new ActionRowBuilder().addComponents(dndButton);
+
+      target.send({
+        embeds: [
+          {
+            title: `🔗 You received a link from ${interaction.user.tag}`,
+            description: `${entry.title || 'Untitled'}\n${frontendUrl}/${
+              entry.slug
+            }+${passkey}`,
+            url: `${frontendUrl}/${entry.slug}+${passkey}`,
+            color: 6169937,
+          },
+          {
+            title: 'Powered by linqbin.cc',
+            url: 'https://linqbin.cc',
+            color: 6169937,
+          },
+        ],
+        components: [row as any], //Due to some bug in discord.js types,
+      });
 
       await interaction.reply({
-        content: `Sent link to ${target}`, // TODO
+        content: `Sent link to ${target}`,
         ephemeral: true,
       });
     }
