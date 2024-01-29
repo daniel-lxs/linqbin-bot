@@ -1,25 +1,31 @@
 import CryptoJS from 'crypto-js';
+import { Entropy, charset64 } from 'entropy-string';
 
-export function encryptContent(content: string, passkey: string) {
-	// Generate a random salt and IV
-	const salt = CryptoJS.lib.WordArray.random(128 / 8);
-	const iv = CryptoJS.lib.WordArray.random(128 / 8);
+export function encryptContent(content: string, passkey?: string) {
+  if (!passkey) {
+    passkey = new Entropy({ charset: charset64, bits: 32 }).string();
+  }
 
-	// Derive key using PBKDF2
-	const key = CryptoJS.PBKDF2(passkey, salt, {
-		keySize: 256 / 32,
-		iterations: 4096
-	});
+  // Generate a random salt and IV
+  const salt = CryptoJS.lib.WordArray.random(128 / 8);
+  const iv = CryptoJS.lib.WordArray.random(128 / 8);
 
-	// Encrypt the content
-	const encrypted = CryptoJS.AES.encrypt(content, key, {
-		iv: iv,
-		padding: CryptoJS.pad.Pkcs7,
-		mode: CryptoJS.mode.CBC
-	});
+  // Derive key using PBKDF2
+  const key = CryptoJS.PBKDF2(passkey, salt, {
+    keySize: 256 / 32,
+    iterations: 4096,
+  });
 
-	// Combine salt, IV, and encrypted data
-	const encryptedContent = salt.toString() + iv.toString() + encrypted.toString();
+  // Encrypt the content
+  const encrypted = CryptoJS.AES.encrypt(content, key, {
+    iv: iv,
+    padding: CryptoJS.pad.Pkcs7,
+    mode: CryptoJS.mode.CBC,
+  });
 
-	return encryptedContent;
+  // Combine salt, IV, and encrypted data
+  const encryptedContent =
+    salt.toString() + iv.toString() + encrypted.toString();
+
+  return { encryptedContent, passkey };
 }
