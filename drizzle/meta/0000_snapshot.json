@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "d3baa75b-3f77-4661-bf02-afcecf5b019f",
+  "id": "cd385efb-b3c5-4a30-bc4d-49fb066957f6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "guilds": {
@@ -48,6 +48,13 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "disabledCommands": {
+          "name": "disabledCommands",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -55,6 +62,51 @@
           "name": "guilds_guildId_unique",
           "columns": [
             "guildId"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "dndEntries": {
+      "name": "dndEntries",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdOn": {
+          "name": "createdOn",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "dndEntries_userId_unique": {
+          "name": "dndEntries_userId_unique",
+          "columns": [
+            "userId"
           ],
           "isUnique": true
         }

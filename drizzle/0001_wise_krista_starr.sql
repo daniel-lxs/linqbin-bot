@@ -1,1 +1,0 @@
-ALTER TABLE guilds ADD `disabledCommands` text;
