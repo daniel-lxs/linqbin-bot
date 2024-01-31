@@ -1,0 +1,7 @@
+version: '3'
+services:
+  linqbot:
+    image: linqbin/linqbot:latest
+    container_name: linqbot
+    volumes:
+      - ~/.linqbot:/app/db

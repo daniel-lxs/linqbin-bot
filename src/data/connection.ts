@@ -2,7 +2,7 @@ import type { BunSQLiteDatabase } from 'drizzle-orm/bun-sqlite';
 import { drizzle } from 'drizzle-orm/bun-sqlite';
 import { Database } from 'bun:sqlite';
 
-const db = new Database('./src/data/sqlite.db', { create: true });
+const db = new Database('./db/sqlite.db', { create: true });
 
 export function getDb(): BunSQLiteDatabase {
   if (!db) {

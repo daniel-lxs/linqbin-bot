@@ -8,6 +8,7 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "dev": "bun run --watch src/index.ts",
+    "build": "bun build ./src/index.ts --target=bun --outdir=dist",
     "run-migrations": "bun run src/data/migrate.ts",
     "generate-migrations": "bunx drizzle-kit generate:sqlite --schema ./src/data/models/index.ts"
   },
