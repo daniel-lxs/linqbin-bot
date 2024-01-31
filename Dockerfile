@@ -16,6 +16,9 @@ VOLUME /app
 RUN bun run run-migrations
 
 RUN bun run build
+
+RUN ls
+
 COPY dist dist
 
 COPY db/sqlite.db .
