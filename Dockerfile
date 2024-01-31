@@ -16,7 +16,7 @@ VOLUME /app
 RUN bun run run-migrations
 RUN bun run build
 
-COPY sqlite.db /app/
+COPY /db/sqlite.db /app/db
 
 ENV NODE_ENV production
 CMD ["bun", "dist/index.js"]
