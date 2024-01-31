@@ -1,5 +1,5 @@
 import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { createNewEntry, getNewPasskey, getPageInfo } from '../../api';
+import { createNewEntry, getPageInfo } from '../../api';
 import { isCommandDisabled } from '../../data/repositories/guildRespository';
 import type { Command, SlashCommand } from '../../types/Command';
 import { encryptContent, validateUrl } from '../../util';
@@ -45,7 +45,7 @@ const shorten: Command = {
       }
     }
 
-    const apiUrl = process.env.API_URL;
+    const frontendUrl = process.env.FRONTEND_URL;
     const url = interaction.options.get('url')?.value as string;
     const ttl = interaction.options.get('ttl')?.value as number;
     const visitCountThreshold = interaction.options.get('visit-limit')
@@ -59,22 +59,9 @@ const shorten: Command = {
     const isValidUrl = validateUrl(url);
 
     if (isValidUrl) {
-      const title = await getPageInfo(url);
-
-      const passkey = await getNewPasskey();
-
-      if (!passkey) {
-        await interaction.reply({
-          content: 'Failed to create entry',
-          ephemeral: true,
-        });
-        return;
-      }
-
-      const encryptedContent = encryptContent(url, passkey);
+      const { encryptedContent, passkey } = encryptContent(url);
 
       const entry = await createNewEntry({
-        title: title?.title || undefined,
         content: encryptedContent,
         ttl: ttl || 1,
         visitCountThreshold: visitCountThreshold || 0,
@@ -88,15 +75,27 @@ const shorten: Command = {
         return;
       }
 
-      await interaction.reply({
-        content: `\`${apiUrl}/${entry.slug}+${passkey}\``, //TODO: add title and url without passkey
-        ephemeral: true,
-      });
-    }
+      if (!isValidUrl) {
+        await interaction.reply({
+          content: 'Invalid url provided!',
+          ephemeral: true,
+        });
+      }
 
-    if (!isValidUrl) {
+      const linkWithPasskey = `${frontendUrl}/${entry.slug}+${passkey}`;
+      const linkWithoutPasskey = `${frontendUrl}/${entry.slug}`;
+
       await interaction.reply({
-        content: 'Invalid url provided!',
+        content: `🔗 Your short link is ready!\n\n**${
+          entry.title || 'Untitled'
+        }**\n[Link with passkey](${linkWithPasskey}) \`\`\`${linkWithPasskey}\`\`\`\n[Link without passkey](${linkWithoutPasskey}) \`\`\`${linkWithoutPasskey}\`\`\`\n_\n`,
+        embeds: [
+          {
+            title: 'Powered by linqbin.cc',
+            url: 'https://linqbin.cc',
+            color: 6169937,
+          },
+        ],
         ephemeral: true,
       });
     }
