@@ -131,17 +131,21 @@ const sendShorten: Command = {
       target.send({
         embeds: [
           {
-            title: `🔗 You received a link from ${interaction.user.tag}`,
+            title: `🔗 You received a link!`,
             description: `${entry.title || 'Untitled'}\n${frontendUrl}/${
               entry.slug
             }+${passkey}`,
             url: `${frontendUrl}/${entry.slug}+${passkey}`,
             color: 6169937,
-          },
-          {
-            title: 'Powered by linqbin.cc',
-            url: 'https://linqbin.cc',
-            color: 6169937,
+            author: {
+              name: interaction.user.tag,
+              icon_url: interaction.user.displayAvatarURL(),
+              url: frontendUrl,
+            },
+            footer: {
+              text: `Powered by linqbin.cc`,
+            },
+            timestamp: new Date().toISOString(),
           },
         ],
         components: [row as any], //Due to some bug in discord.js types,
