@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY package.json .
 COPY bun.lockb .
+COPY migrate-and-start.sh .
 
 RUN bun install --production
 
