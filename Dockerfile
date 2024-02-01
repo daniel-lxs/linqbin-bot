@@ -14,7 +14,6 @@ COPY tsconfig.json .
 VOLUME /app/db
 
 RUN mkdir -p db
-RUN bun run run-migrations
 
 RUN bun run build
 
