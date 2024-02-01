@@ -13,7 +13,9 @@ COPY tsconfig.json .
 
 VOLUME /app
 
+RUN mkdir -p db
 RUN bun run run-migrations
+
 RUN bun run build
 
 COPY db/sqlite.db .
