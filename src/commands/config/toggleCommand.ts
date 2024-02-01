@@ -49,7 +49,7 @@ const toggleCommand = {
     if (!isGuildOwner) {
       await interaction.reply({
         content:
-          'You do not have permission to use this command! Make sure to set this guild first using /set-this',
+          'You do not have permission to use this command! Make sure to set this guild first using /set-guild',
         ephemeral: true,
       });
       return;
