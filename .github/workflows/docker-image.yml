@@ -31,5 +31,5 @@ jobs:
           context: .
           push: true
           tags: |
-            linqbin/linqbin-backend:${{ github.sha }}
-            linqbin/linqbin-backend:latest
+            linqbin/linqbot:${{ github.sha }}
+            linqbin/linqbot:latest
