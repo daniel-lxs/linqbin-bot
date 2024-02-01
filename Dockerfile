@@ -18,8 +18,6 @@ RUN bun run run-migrations
 
 RUN bun run build
 
-COPY db/sqlite.db .
-
 ENV NODE_ENV production
 
 CMD ["bun", "dist/index.js"]
