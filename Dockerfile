@@ -11,7 +11,7 @@ COPY src src
 COPY drizzle drizzle
 COPY tsconfig.json .
 
-VOLUME /app
+VOLUME /app/db
 
 RUN mkdir -p db
 RUN bun run run-migrations
