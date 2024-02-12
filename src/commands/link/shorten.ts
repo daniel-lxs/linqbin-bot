@@ -1,8 +1,8 @@
 import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { createNewEntry, getPageInfo } from '../../api';
+import { createNewEntry } from '../../api';
 import { isCommandDisabled } from '../../data/repositories/guildRespository';
 import type { Command, SlashCommand } from '../../types/Command';
-import { encryptContent, validateUrl } from '../../util';
+import { encryptContent, validateUrl, hashPasskey } from '../../util';
 
 const shorten: Command = {
   data: new SlashCommandBuilder()
@@ -60,10 +60,12 @@ const shorten: Command = {
 
     if (isValidUrl) {
       const { encryptedContent, passkey } = encryptContent(url);
+      const protoHash = await hashPasskey(passkey);
 
       const entry = await createNewEntry({
         content: encryptedContent,
         ttl: ttl || 1,
+        protoHash,
         visitCountThreshold: visitCountThreshold || 0,
       });
 

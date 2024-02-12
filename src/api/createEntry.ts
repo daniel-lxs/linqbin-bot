@@ -5,6 +5,7 @@ export async function createNewEntry({
   title,
   content,
   ttl,
+  protoHash,
   visitCountThreshold,
 }: NewEntryDto): Promise<Entry | null> {
   try {
@@ -16,6 +17,7 @@ export async function createNewEntry({
       body: JSON.stringify({
         title,
         content,
+        protoHash,
         visitCountThreshold,
         ttl,
       }),

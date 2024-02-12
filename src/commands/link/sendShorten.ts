@@ -6,8 +6,7 @@ import {
   ActionRowBuilder,
 } from 'discord.js';
 import type { Command, SlashCommand } from '../../types/Command';
-import { encryptContent, validateUrl } from '../../util';
-import { getPageInfo } from '../../api/getPageInfo';
+import { encryptContent, hashPasskey, validateUrl } from '../../util';
 import { createNewEntry } from '../../api/createEntry';
 import {
   findGuildByGuildId,
@@ -106,11 +105,13 @@ const sendShorten: Command = {
 
     if (isValidUrl) {
       const { encryptedContent, passkey } = encryptContent(url);
+      const protoHash = await hashPasskey(passkey);
 
       const entry = await createNewEntry({
         title: title || undefined,
         content: encryptedContent,
         ttl: ttl || 1,
+        protoHash,
         visitCountThreshold: visitCountThreshold || 0,
       });
 
