@@ -16,7 +16,7 @@ import { isDndEnabled } from '../../data/repositories/dndEntryRepository';
 
 const sendShorten: Command = {
   data: new SlashCommandBuilder()
-    .setName('send-shorten')
+    .setName('send')
     .setDescription('Sends a shortened url to another member of the server')
     .addStringOption((option) =>
       option
