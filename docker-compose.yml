@@ -6,5 +6,5 @@ services:
       - .env
     container_name: linqbot
     volumes:
-      - ~/.linqbot:/app/db
+      - ~/.linqbot:/app/data
     command: 'sh ./migrate-and-start.sh'
