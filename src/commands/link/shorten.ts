@@ -7,11 +7,13 @@ import { encryptContent, validateUrl, hashPasskey } from '../../util';
 const shorten: Command = {
   data: new SlashCommandBuilder()
     .setName('shorten')
-    .setDescription('Shortens a url')
+    .setDescription('Creates a shortened url from a url/text')
     .addStringOption((option) =>
       option
-        .setName('url') //TODO: allow text or url
-        .setDescription('The url to shorten')
+        .setName('content')
+        .setDescription('The url/text to create a shortened url from')
+        .setMinLength(6)
+        .setMaxLength(2048)
         .setRequired(true)
     )
     .addIntegerOption((option) =>
@@ -46,61 +48,50 @@ const shorten: Command = {
     }
 
     const frontendUrl = process.env.FRONTEND_URL;
-    const url = interaction.options.get('url')?.value as string;
+    const content = interaction.options.get('content')?.value as string;
     const ttl = interaction.options.get('ttl')?.value as number;
     const visitCountThreshold = interaction.options.get('visit-limit')
       ?.value as number;
 
-    if (!url) {
-      await interaction.reply('No url provided!');
+    if (!content) {
+      await interaction.reply('No content provided!');
       return;
     }
 
-    const isValidUrl = validateUrl(url);
+    const { encryptedContent, passkey } = encryptContent(content);
+    const protoHash = await hashPasskey(passkey);
 
-    if (isValidUrl) {
-      const { encryptedContent, passkey } = encryptContent(url);
-      const protoHash = await hashPasskey(passkey);
+    const entry = await createNewEntry({
+      content: encryptedContent,
+      ttl: ttl || 1,
+      protoHash,
+      visitCountThreshold: visitCountThreshold || 0,
+    });
 
-      const entry = await createNewEntry({
-        content: encryptedContent,
-        ttl: ttl || 1,
-        protoHash,
-        visitCountThreshold: visitCountThreshold || 0,
-      });
-
-      if (!entry) {
-        await interaction.reply({
-          content: 'Failed to create entry',
-          ephemeral: true,
-        });
-        return;
-      }
-
-      if (!isValidUrl) {
-        await interaction.reply({
-          content: 'Invalid url provided!',
-          ephemeral: true,
-        });
-      }
-
-      const linkWithPasskey = `${frontendUrl}/${entry.slug}+${passkey}`;
-      const linkWithoutPasskey = `${frontendUrl}/${entry.slug}`;
-
+    if (!entry) {
       await interaction.reply({
-        content: `🔗 Your short link is ready!\n\n**${
-          entry.title || 'Untitled'
-        }**\n[Link with passkey](${linkWithPasskey}) \`\`\`${linkWithPasskey}\`\`\`\n[Link without passkey](${linkWithoutPasskey}) \`\`\`${linkWithoutPasskey}\`\`\`\n_\n`,
-        embeds: [
-          {
-            title: 'Powered by linqbin.cc',
-            url: 'https://linqbin.cc',
-            color: 6169937,
-          },
-        ],
+        content: 'Failed to create entry',
         ephemeral: true,
       });
+      return;
     }
+
+    const linkWithPasskey = `${frontendUrl}/${entry.slug}+${passkey}`;
+    const linkWithoutPasskey = `${frontendUrl}/${entry.slug}`;
+
+    await interaction.reply({
+      content: `🔗 Your short link is ready!\n\n**${
+        entry.title || 'Untitled'
+      }**\n[Link with passkey](${linkWithPasskey}) \`\`\`${linkWithPasskey}\`\`\`\n[Link without passkey](${linkWithoutPasskey}) \`\`\`${linkWithoutPasskey}\`\`\`\n_\n`,
+      embeds: [
+        {
+          title: 'Powered by linqbin.cc',
+          url: 'https://linqbin.cc',
+          color: 6169937,
+        },
+      ],
+      ephemeral: true,
+    });
   },
 };
 
