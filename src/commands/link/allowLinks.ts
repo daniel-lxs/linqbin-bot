@@ -24,3 +24,5 @@ export const allowLinks: Command = {
     });
   },
 };
+
+export default allowLinks;
