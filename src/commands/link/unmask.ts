@@ -10,7 +10,7 @@ const unmask: Command = {
       option
         .setName('key')
         .setDescription('The key to unmask')
-        .setRequired(false)
+        .setRequired(true)
     ),
   execute: async (
     interaction: CommandInteraction,
@@ -37,7 +37,7 @@ const unmask: Command = {
       return;
     }
 
-    const regex = /^[a-zA-Z0-9]{3}\d{3}\+[a-zA-Z0-9]{3}\d{3}$/;
+    const regex = /^[a-zA-Z0-9]{6}\+[a-zA-Z0-9]{6}$/;
     const isKeyValid = regex.test(key);
 
     if (!isKeyValid) {
