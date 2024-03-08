@@ -10,6 +10,8 @@ const unmask: Command = {
       option
         .setName('key')
         .setDescription('The key to unmask')
+        .setMinLength(6)
+        .setMaxLength(13)
         .setRequired(true)
     ),
   execute: async (
@@ -32,17 +34,6 @@ const unmask: Command = {
     if (!key) {
       await interaction.reply({
         content: 'No key provided!',
-        ephemeral: true,
-      });
-      return;
-    }
-
-    const regex = /^[a-zA-Z0-9]{6}\+[a-zA-Z0-9]{6}$/;
-    const isKeyValid = regex.test(key);
-
-    if (!isKeyValid) {
-      await interaction.reply({
-        content: 'Invalid key!',
         ephemeral: true,
       });
       return;
