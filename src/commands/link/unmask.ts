@@ -29,19 +29,20 @@ const unmask: Command = {
 
     let key = interaction.options.get('key')?.value as string;
 
-    //get repliedTo message in case key is not provided
     if (!key) {
-      const repliedTo = await interaction.fetchReply();
-      if (repliedTo) {
-        key = repliedTo.content;
-      }
+      await interaction.reply({
+        content: 'No key provided!',
+        ephemeral: true,
+      });
+      return;
     }
+
     const regex = /^[a-zA-Z0-9]{3}\d{3}\+[a-zA-Z0-9]{3}\d{3}$/;
     const isKeyValid = regex.test(key);
 
-    if (!key || !isKeyValid) {
+    if (!isKeyValid) {
       await interaction.reply({
-        content: 'No key provided or invalid key!',
+        content: 'Invalid key!',
         ephemeral: true,
       });
       return;
