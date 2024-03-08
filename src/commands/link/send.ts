@@ -14,7 +14,7 @@ import {
 } from '../../data/repositories/guildRespository';
 import { isDndEnabled } from '../../data/repositories/dndEntryRepository';
 
-const sendShorten: Command = {
+const send: Command = {
   data: new SlashCommandBuilder()
     .setName('send')
     .setDescription('Sends a shortened url to another member of the server')
@@ -160,4 +160,4 @@ const sendShorten: Command = {
   },
 };
 
-export default sendShorten;
+export default send;
