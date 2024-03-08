@@ -53,6 +53,7 @@ const unmask: Command = {
     await interaction.reply({
       content: `${frontendUrl}/${key}`,
       ephemeral: true,
+      flags: 4,
     });
   },
 };
